@@ -1,0 +1,607 @@
+/* Application shell layout: sidebar + header + content area.
+   Phase 4B.7B restyles the shell only. Every structural contract the JavaScript
+   and the tests rely on is preserved verbatim:
+     .app-shell[data-sidebar="closed"|"open"] · .app-sidebar (#app-sidebar)
+     .app-main · .app-header · .app-content (#app-content) · .app-backdrop
+     [data-sidebar-toggle][aria-controls="app-sidebar"][aria-expanded]
+     .app-nav__link[data-route-id][aria-current="page"] · .app-nav__icon
+   No physical left/right property is used: the shell is written with logical
+   properties so RTL and LTR both lay out correctly. */
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+/* ------------------------------------------------------------- sidebar */
+.app-sidebar {
+  grid-column: 1;
+  background: var(--color-sidebar-bg);
+  background-image: linear-gradient(180deg, var(--color-sidebar-bg) 0%, var(--color-sidebar-bg-strong) 100%);
+  border-inline-end: 1px solid var(--color-sidebar-border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  inset-block-start: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  z-index: var(--z-header);
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-4);
+  min-height: var(--header-height);
+  border-block-end: 1px solid var(--color-sidebar-border);
+}
+
+.app-sidebar__logo {
+  width: 40px; height: 40px; flex: 0 0 40px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(140deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
+  color: var(--color-text-inverse);
+  display: grid; place-items: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  box-shadow: var(--shadow-xs);
+}
+
+.app-sidebar__title { display: flex; flex-direction: column; min-width: 0; }
+.app-sidebar__title strong { font-size: var(--font-size-md); color: var(--color-sidebar-active-text); font-weight: var(--font-weight-bold); }
+.app-sidebar__title span { font-size: var(--font-size-xs); color: var(--color-sidebar-text-muted); }
+
+.app-nav { padding: var(--space-3) var(--space-3) var(--space-5); flex: 1 0 auto; }
+.app-nav__group + .app-nav__group { margin-block-start: var(--space-4); }
+
+.app-nav__group-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: var(--color-sidebar-text-muted);
+  padding: var(--space-2) var(--space-3);
+  margin-block-end: var(--space-1);
+}
+
+.app-nav__link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  margin-block-end: 2px;
+  border-radius: var(--radius-md);
+  border-inline-start: 3px solid transparent;
+  color: var(--color-sidebar-text);
+  font-size: var(--font-size-sm);
+  position: relative;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+.app-nav__link:hover { background: var(--color-sidebar-hover); color: var(--color-sidebar-active-text); text-decoration: none; }
+.app-nav__link[aria-current="page"] {
+  background: var(--color-sidebar-active);
+  border-inline-start-color: var(--color-primary-soft-strong);
+  color: var(--color-sidebar-active-text);
+  font-weight: var(--font-weight-medium);
+}
+.app-nav__icon {
+  width: 22px; flex: 0 0 22px;
+  display: inline-flex; align-items: center; justify-content: center;
+  text-align: center;
+  color: currentColor;
+  opacity: 0.9;
+}
+.app-nav__icon svg { width: 18px; height: 18px; display: block; }
+.app-nav__link[aria-current="page"] .app-nav__icon { opacity: 1; }
+
+/* --------------------------------------------------------- main column */
+.app-main { grid-column: 2; display: flex; flex-direction: column; min-width: 0; }
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--header-height);
+  padding: var(--space-3) var(--space-5);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(8px);
+  border-block-end: 1px solid var(--color-border);
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-header);
+}
+
+.app-header__titles { display: flex; flex-direction: column; min-width: 0; }
+.app-header__titles h1 {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.app-header__subtitle {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.app-header__actions { margin-inline-start: auto; display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+
+/* The settings badge keeps its plain-text contract: ui/app.js replaces its
+   textContent, so the visual accent is added with CSS only. */
+.app-header__actions .badge {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-soft);
+  padding: 5px var(--space-3);
+  font-weight: var(--font-weight-medium);
+}
+.app-header__actions .badge::before {
+  content: "";
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--color-primary);
+  display: inline-block;
+  margin-inline-end: 6px;
+}
+.app-shell[data-settings="error"] .app-header__actions .badge::before { background: var(--color-alert-danger); }
+
+.app-content {
+  padding: var(--space-5);
+  flex: 1;
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin-inline: auto;
+  min-width: 0;
+}
+.app-content:focus { outline: none; }
+
+.app-header .sidebar-toggle { display: none; }
+.app-header .sidebar-toggle { order: 1; }
+.app-header .app-header__titles { order: 2; }
+.app-header .app-header__actions { order: 3; }
+
+.app-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 26, 43, 0.5);
+  backdrop-filter: blur(1px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base);
+  z-index: var(--z-backdrop);
+}
+
+/* ------------------------------------------------------------ utility */
+.grid { display: grid; gap: var(--space-4); }
+.grid--cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.grid--cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid--cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stack { display: flex; flex-direction: column; gap: var(--space-4); }
+.row { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+.row--between { justify-content: space-between; }
+.divider { height: 1px; background: var(--color-border); border: 0; margin-block: var(--space-4); }
+
+/* --------------------------------------------------- responsive rules */
+@media (max-width: 1024px) {
+  .grid--cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid--cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 820px) {
+  .app-shell { grid-template-columns: minmax(0, 1fr); }
+
+  .app-sidebar {
+    position: fixed;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--sidebar-width);
+    max-width: 86vw;
+    transform: translateX(100%);
+    transition: transform var(--transition-base);
+    z-index: var(--z-drawer);
+    box-shadow: var(--shadow-lg);
+    visibility: hidden;
+  }
+  html[dir="rtl"] .app-sidebar { transform: translateX(100%); }
+  .app-shell[data-sidebar="open"] .app-sidebar,
+  html[dir="rtl"] .app-shell[data-sidebar="open"] .app-sidebar { transform: translateX(0); visibility: visible; }
+
+  .app-shell[data-sidebar="open"] .app-backdrop { opacity: 1; pointer-events: auto; }
+
+  .app-main { grid-column: 1; }
+  .app-header .sidebar-toggle { display: inline-flex; }
+  .app-header { padding-inline: var(--space-4); gap: var(--space-2); }
+  .app-content { padding: var(--space-4); }
+  .grid--cols-2, .grid--cols-3, .grid--cols-4 { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .app-header__subtitle { display: none; }
+  .app-header__actions .badge { font-size: var(--font-size-xs); padding: 4px var(--space-2); }
+  .app-content { padding: var(--space-3); }
+}
+
+/* ---------------------------------------------------------------------------
+   Phase 4B.16 correction — the breadcrumb of a child destination.
+   `.app-breadcrumb` had no rule anywhere in the stylesheets, so it rendered as
+   an unstyled block: inside the narrow `.app-header__titles` column its link,
+   its chevron and the current page wrapped onto five lines and the header grew
+   from 68px to 243px on the customer-account route. The rules below keep it on
+   a single line and let the titles column take the free space, so the header
+   returns to its normal height while every element stays visible.
+   The element only exists on destinations that hang off a navigation item, so
+   no other screen is touched.
+   --------------------------------------------------------------------------- */
+.app-header__titles { flex: 1 1 auto; }
+
+.app-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--font-size-xs);
+  line-height: 1.1;
+  color: var(--color-text-muted);
+}
+.app-breadcrumb__link,
+.app-breadcrumb__current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app-breadcrumb__link {
+  flex: 0 1 auto;
+  color: var(--color-text-soft);
+  text-decoration: none;
+}
+.app-breadcrumb__link:hover,
+.app-breadcrumb__link:focus-visible { color: var(--color-primary); text-decoration: underline; }
+.app-breadcrumb__sep { flex: 0 0 auto; display: inline-flex; align-items: center; color: var(--color-text-soft); }
+.app-breadcrumb__sep svg { width: 12px; height: 12px; display: block; }
+.app-breadcrumb__current { flex: 0 1 auto; color: var(--color-text); font-weight: var(--font-weight-medium); }
+
+/* A header that carries a breadcrumb holds one line more. The tighter block
+   padding keeps its total height equal to --header-height instead of letting it
+   grow; `:has()` scopes it, so a header without a breadcrumb keeps the original
+   padding and every other screen is unchanged. */
+.app-header:has(.app-breadcrumb) { padding-block: var(--space-1); }
+
+/* ---------------------------------------------------------------------------
+   Phase 4B.25 — refined application shell. Existing DOM and route contracts
+   remain unchanged; these rules improve hierarchy, density and responsiveness.
+   --------------------------------------------------------------------------- */
+.app-shell { background: radial-gradient(ellipse at 84% 0%, rgba(216, 229, 244, .42), transparent 34%), var(--color-bg); }
+.app-sidebar { background-image: linear-gradient(165deg, #142d49 0%, #10243a 52%, #0b1a2b 100%); }
+.app-sidebar__brand { min-height: 82px; padding-inline: 22px; }
+.app-sidebar__logo { width: 44px; height: 44px; flex-basis: 44px; border-radius: 14px; background: linear-gradient(145deg, #1c8a68, #0f513b); box-shadow: 0 8px 20px rgba(0,0,0,.2), inset 0 1px rgba(255,255,255,.18); }
+.app-sidebar__title strong { font-size: 15px; letter-spacing: -.02em; }
+.app-sidebar__title span { margin-block-start: 2px; }
+.app-nav { padding: 18px 13px 28px; }
+.app-nav__group + .app-nav__group { margin-block-start: 22px; }
+/* Phase 4B.26.3 — primary sidebar action for starting a movement. */
+.app-nav__quick-action {
+  min-height: 48px;
+  margin-block-end: 18px;
+  padding-inline: 14px;
+  color: #ffffff;
+  font-weight: 800;
+  background: linear-gradient(135deg, #16845f, #116548);
+  border: 1px solid rgba(150, 239, 202, .25);
+  border-inline-start: 3px solid #7be0b6;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, .16), inset 0 1px rgba(255,255,255,.13);
+}
+.app-nav__quick-action:hover,
+.app-nav__quick-action:focus-visible { background: linear-gradient(135deg, #1b9a70, #147454); color: #fff; }
+.app-nav__quick-action .app-nav__icon { width: 28px; flex-basis: 28px; height: 28px; border-radius: 9px; background: rgba(255,255,255,.15); }
+.app-nav__quick-action .app-nav__icon svg { width: 19px; height: 19px; }
+
+.app-nav__group-title { padding-inline: 14px; margin-block-end: 7px; font-size: 10px; font-weight: 800; letter-spacing: .06em; opacity: .82; }
+.app-nav__link { min-height: 44px; padding: 9px 13px; gap: 12px; border-inline-start-width: 3px; border-radius: 11px; font-size: 13px; }
+.app-nav__icon { width: 23px; flex-basis: 23px; }
+.app-nav__icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.app-nav__link[aria-current="page"] { background: linear-gradient(90deg, rgba(42, 133, 101, .24), rgba(255,255,255,.09)); border-inline-start-color: #62d2a7; box-shadow: inset 0 0 0 1px rgba(255,255,255,.045); }
+.app-nav__link[aria-current="page"] .app-nav__icon { color: #8ce0bd; }
+.app-main { min-height: 100vh; }
+.app-header { min-height: var(--header-height); padding-inline: 28px; background: rgba(255,255,255,.88); border-block-end-color: rgba(207,217,229,.78); box-shadow: 0 3px 14px rgba(23,36,55,.025); }
+.app-header__titles h1 { font-size: 17px; letter-spacing: -.02em; }
+.app-header__subtitle { margin-block-start: 3px; }
+.app-header__actions { gap: 9px; }
+.app-header__actions .badge { min-height: 32px; }
+.app-content { padding: 28px; }
+.app-user-chip { gap: 7px !important; padding: 5px 10px !important; background: #f3f6fa !important; border-color: #e1e7ef !important; }
+.app-user-chip__dot { width: 7px; height: 7px; border-radius: 50%; background: #16966b; display: inline-block; }
+.app-user-chip[data-user-role="employee"] .app-user-chip__dot { background: #3478d4; }
+.app-user-chip__name { max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+.app-user-chip__role { color: var(--color-text-muted); border-inline-start: 1px solid var(--color-border-strong); padding-inline-start: 7px; }
+.app-logout { min-height: 34px; }
+
+@media (max-width: 1024px) {
+  .app-content { padding: 22px; }
+  .app-header { padding-inline: 22px; }
+}
+@media (max-width: 820px) {
+  .app-header { min-height: 66px; padding-inline: 16px; }
+  .app-content { padding: 18px; }
+  .app-sidebar__brand { min-height: 72px; }
+}
+@media (max-width: 560px) {
+  .app-header { gap: 8px; }
+  .app-header__titles h1 { font-size: 15px; }
+  .app-header__actions { gap: 5px; }
+  .app-user-chip__name { max-width: 82px; }
+  .app-user-chip__role { display: none; }
+  .app-logout { padding-inline: 9px !important; }
+  .app-content { padding: 13px; }
+}
+
+
+/* Phase 4B.26.3 — cash receipt and cash payment must never look interchangeable. */
+.cash-direction-card { margin-block: 0 18px; padding: 18px 20px; border: 1px solid; border-radius: 16px; display: grid; gap: 14px; }
+.cash-direction-card--cash-received { background: #effaf5; border-color: #8bd5b2; color: #145b3e; }
+.cash-direction-card--cash-paid { background: #fff3f1; border-color: #f0aaa1; color: #8d2c25; }
+.cash-direction-card__heading { display: flex; align-items: center; gap: 14px; }
+.cash-direction-card__symbol { display: inline-flex; width: 48px; height: 48px; flex: 0 0 48px; align-items: center; justify-content: center; border-radius: 14px; background: currentColor; color: #fff; font-size: 30px; font-weight: 900; line-height: 1; }
+.cash-direction-card__heading h3 { margin: 0; font-size: 17px; font-weight: 850; }
+.cash-direction-card__heading p { margin: 5px 0 0; font-size: 13px; font-weight: 700; }
+.cash-direction-card__confirm { display: flex; align-items: flex-start; gap: 10px; padding-block-start: 12px; border-block-start: 1px solid currentColor; font-size: 13px; font-weight: 700; }
+.cash-direction-card__confirm input { width: 18px; height: 18px; flex: 0 0 18px; margin-block-start: 1px; accent-color: currentColor; }
+@media (max-width: 560px) { .cash-direction-card { padding: 14px; } .cash-direction-card__heading h3 { font-size: 15px; } }
+
+/* Phase 4B.26.4 — premium transaction-entry workspace and final review flow. */
+.transaction-entry { display: grid; gap: 18px; max-width: 1180px; margin-inline: auto; padding-block-end: 28px; }
+.transaction-entry__intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 24px 28px; border: 1px solid #dce7ed; border-radius: 20px; background: radial-gradient(circle at 8% 10%,rgba(31,133,111,.10),transparent 28%), linear-gradient(115deg,#fff 0%,#f4f9f8 100%); box-shadow: 0 8px 24px rgba(24,55,75,.045); }
+.transaction-entry__intro-copy { min-width: 0; }
+.transaction-entry__eyebrow,.transaction-entry__step-label { display: inline-block; color: #16836a; font-size: 10px; font-weight: 900; letter-spacing: .06em; }
+.transaction-entry__intro h3 { margin-block: 5px 7px; color: #16384c; font-size: clamp(21px,2vw,27px); font-weight: 850; }
+.transaction-entry__intro p { margin: 0; color: #65778a; font-size: 12px; }
+.transaction-entry__steps { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; color: #8292a2; font-size: 10px; font-weight: 800; }
+.transaction-entry__steps span { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.transaction-entry__steps b { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid #d6e0e7; border-radius: 50%; background: #fff; color: #718396; font-size: 10px; }
+.transaction-entry__steps .is-active { color: #176c58; }
+.transaction-entry__steps .is-active b { border-color: #16836a; background: #16836a; color: #fff; box-shadow: 0 0 0 4px rgba(22,131,106,.10); }
+.transaction-entry__steps i { width: 22px; height: 1px; background: #d5e0e6; }
+.transaction-entry__form { display: grid; gap: 16px; }
+.transaction-entry__panel { overflow: hidden; border: 1px solid #dfe7ee; border-radius: 17px; background: #fff; box-shadow: 0 4px 16px rgba(24,45,72,.035); }
+.transaction-entry__panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 17px 21px; border-block-end: 1px solid #e9eef3; background: linear-gradient(180deg,#fff,#f9fbfd); }
+.transaction-entry__panel-heading h4 { margin-block: 3px 4px; color: #233f56; font-size: 16px; font-weight: 850; }
+.transaction-entry__panel-heading p { margin: 0; color: #78899a; font-size: 11px; }
+.transaction-entry__panel-icon { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid #dcebe6; border-radius: 13px; background: #eff8f4; color: #17765f; font-size: 13px; font-weight: 900; }
+.transaction-entry__basic-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 17px 20px; padding: 21px; }
+.transaction-entry__basic-grid .field:first-child { grid-column: 1 / -1; }
+.transaction-entry__basic-grid .field:first-child .select { min-height: 48px; border-color: #b9d4ca; background-color: #fbfefd; font-weight: 750; }
+.transaction-entry__type-note { display: flex; align-items: flex-start; gap: 9px; margin: 0 21px 20px; padding: 11px 13px; border: 1px solid #dcebe7; border-radius: 11px; background: #f5faf8; color: #557466; font-size: 11px; line-height: 1.7; }
+.transaction-entry__type-note > span:first-child { color: #16836a; font-size: 15px; font-weight: 900; }
+.transaction-entry__dynamic { padding: 21px; }
+.transaction-entry__dynamic .transaction-fields-grid { gap: 18px 20px; }
+.transaction-entry__dynamic .field { gap: 7px; }
+.transaction-entry__dynamic .field__label { color: #354d62; font-size: 12px; font-weight: 800; }
+.transaction-entry__dynamic .input,.transaction-entry__dynamic .select { min-height: 45px; border-color: #d0dbe5; border-radius: 11px; background-color: #fbfcfe; }
+.transaction-entry__dynamic .input:focus,.transaction-entry__dynamic .select:focus { background: #fff; }
+.transaction-entry__dynamic .card { border-color: #e2eaf0; border-radius: 13px; box-shadow: none; background: #fbfcfe; }
+.transaction-entry__dynamic .card__header { padding: 12px 15px; background: #f4f8fb; }
+.transaction-entry__dynamic .card__body { padding: 15px; }
+.transaction-entry__actions { position: sticky; bottom: 10px; z-index: 4; display: flex; align-items: center; gap: 13px; padding: 13px 15px; border: 1px solid #dce6ed; border-radius: 15px; background: rgba(255,255,255,.96); box-shadow: 0 9px 28px rgba(20,42,65,.12); backdrop-filter: blur(12px); }
+.transaction-entry__actions-copy { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.transaction-entry__actions-copy strong { color: #29445a; font-size: 11px; }
+.transaction-entry__actions-copy span { color: #7b8b9a; font-size: 10px; }
+.transaction-entry__review-button { min-width: 190px; min-height: 46px; gap: 9px; border-radius: 11px; font-weight: 850; }
+.transaction-entry__review-button > span:first-child { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid rgba(255,255,255,.4); border-radius: 50%; }
+.transaction-review-backdrop { position: fixed; inset: 0; z-index: 1200; display: grid; place-items: center; overflow-y: auto; padding: 22px; background: rgba(10,25,40,.62); backdrop-filter: blur(5px); animation: fade-in .16s ease-out; }
+.transaction-review { width: min(760px,100%); max-height: min(92vh,900px); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,.65); border-radius: 22px; background: #fff; box-shadow: 0 28px 90px rgba(4,18,32,.32); animation: modal-in .18s ease-out; }
+.transaction-review__header { display: flex; align-items: center; gap: 15px; padding: 20px 23px; border-block-end: 1px solid #e8edf2; background: linear-gradient(115deg,#f7fbfa,#fff); }
+.transaction-review__mark { display: grid; place-items: center; width: 48px; height: 48px; flex: 0 0 48px; border-radius: 15px; background: linear-gradient(145deg,#18866b,#11604f); color: #fff; font-size: 23px; font-weight: 900; box-shadow: 0 6px 15px rgba(20,115,90,.18); }
+.transaction-review__header > div:nth-child(2) { flex: 1; min-width: 0; }
+.transaction-review__eyebrow { color: #178268; font-size: 10px; font-weight: 900; }
+.transaction-review__header h3 { margin-block: 3px 4px; color: #1e3c51; font-size: 19px; font-weight: 900; }
+.transaction-review__header p { margin: 0; color: #77899a; font-size: 11px; }
+.transaction-review__close { width: 34px; height: 34px; border: 1px solid #dce5ec; border-radius: 10px; background: #fff; color: #64778a; font-size: 22px; cursor: pointer; }
+.transaction-review__body { overflow-y: auto; display: grid; gap: 15px; padding: 19px 23px; }
+.transaction-review__section { display: grid; gap: 10px; }
+.transaction-review__section h4 { color: #2b465c; font-size: 12px; font-weight: 900; }
+.transaction-review__grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+.transaction-review__item { display: grid; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid #e7edf2; border-radius: 10px; background: #f9fbfd; }
+.transaction-review__item span { color: #7b8b9a; font-size: 10px; }
+.transaction-review__item strong { color: #29445a; font-size: 12px; font-weight: 850; overflow-wrap: anywhere; }
+.transaction-review__item--emphasis { border-color: #cfe5dc; background: #f2faf6; }
+.transaction-review__item--emphasis strong { color: #116b50; font-size: 14px; font-variant-numeric: tabular-nums; }
+.transaction-review__impact { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid; border-radius: 12px; }
+.transaction-review__impact-icon { display: grid; place-items: center; width: 36px; height: 36px; flex: 0 0 36px; border-radius: 11px; background: currentColor; color: #fff; font-size: 22px; font-weight: 900; }
+.transaction-review__impact strong,.transaction-review__impact small { display: block; }
+.transaction-review__impact strong { font-size: 12px; font-weight: 900; }
+.transaction-review__impact small { margin-block-start: 3px; font-size: 10px; opacity: .8; }
+.transaction-review__impact.is-in { border-color: #b9e3d0; background: #f0faf5; color: #14734f; }
+.transaction-review__impact.is-out { border-color: #f0c9c5; background: #fff5f3; color: #a53b32; }
+.transaction-review__impact.is-neutral { border-color: #d7dff0; background: #f5f7fd; color: #4d5f98; }
+.transaction-review__warning { display: grid; gap: 4px; padding: 12px 14px; border: 1px solid #f0d08b; border-radius: 11px; background: #fff9e9; color: #865900; font-size: 11px; }
+.transaction-review__note { margin: 0; color: #8291a0; font-size: 10px; text-align: center; }
+.transaction-review__footer { display: flex; justify-content: flex-end; gap: 10px; padding: 14px 23px; border-block-start: 1px solid #e8edf2; background: #f8fafc; }
+.transaction-review__confirm { min-width: 205px; min-height: 43px; }
+@media (max-width: 760px) {
+  .transaction-entry__intro { align-items: flex-start; flex-direction: column; padding: 19px; }
+  .transaction-entry__steps { width: 100%; justify-content: space-between; }
+  .transaction-entry__steps i { flex: 1; }
+  .transaction-entry__basic-grid { grid-template-columns: minmax(0,1fr); padding: 16px; }
+  .transaction-entry__basic-grid .field:first-child { grid-column: auto; }
+  .transaction-entry__dynamic { padding: 16px; }
+  .transaction-entry__actions { bottom: 5px; flex-wrap: wrap; }
+  .transaction-entry__actions-copy { flex-basis: calc(100% - 110px); }
+  .transaction-entry__review-button { flex: 1 1 100%; order: 3; }
+  .transaction-review-backdrop { padding: 9px; }
+  .transaction-review { max-height: 96vh; border-radius: 17px; }
+  .transaction-review__header,.transaction-review__body { padding-inline: 15px; }
+  .transaction-review__grid { grid-template-columns: minmax(0,1fr); }
+  .transaction-review__footer { padding: 12px 15px; }
+  .transaction-review__footer .btn { flex: 1; }
+}
+.transaction-type-picker { display: grid; gap: 8px; }
+.transaction-type-picker__grid { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 9px; }
+.transaction-type-tile { position: relative; display: flex; align-items: center; gap: 9px; min-width: 0; min-height: 66px; padding: 10px 11px; border: 1px solid #e0e8ee; border-radius: 12px; background: #fbfcfd; color: #334b60; text-align: start; cursor: pointer; transition: transform .14s ease,border-color .14s ease,background .14s ease,box-shadow .14s ease; }
+.transaction-type-tile:hover { transform: translateY(-2px); border-color: #a9c9bd; background: #fff; box-shadow: 0 5px 14px rgba(28,73,63,.07); }
+.transaction-type-tile:focus-visible { outline: 2px solid #27866f; outline-offset: 2px; }
+.transaction-type-tile.is-selected { border-color: #23866c; background: linear-gradient(145deg,#f0faf5,#fff); box-shadow: inset 0 0 0 1px rgba(35,134,108,.16),0 4px 12px rgba(25,111,86,.08); }
+.transaction-type-tile__icon { display: grid; place-items: center; width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px; background: #edf2f6; color: #405c73; font-size: 18px; font-weight: 900; }
+.transaction-type-tile__copy { display: grid; gap: 3px; min-width: 0; }
+.transaction-type-tile__copy strong { color: #2b455a; font-size: 10px; font-weight: 900; line-height: 1.4; }
+.transaction-type-tile__copy small { color: #8291a0; font-size: 9px; line-height: 1.35; }
+.transaction-type-tile__check { position: absolute; inset-block-start: 5px; inset-inline-end: 6px; display: none; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: #1a8065; color: #fff; font-size: 10px; }
+.transaction-type-tile.is-selected .transaction-type-tile__check { display: grid; }
+.transaction-type-tile--cash-in .transaction-type-tile__icon { background: #e3f6ec; color: #168052; }
+.transaction-type-tile--cash-out .transaction-type-tile__icon { background: #fff0ed; color: #b44438; }
+.transaction-type-tile--crop .transaction-type-tile__icon { background: #fff5e7; color: #9b671c; }
+.transaction-type-tile--noncash .transaction-type-tile__icon { background: #edf0fc; color: #5c65a3; }
+.transaction-type-tile--transfer .transaction-type-tile__icon { background: #f1edfa; color: #7252a6; }
+.transaction-type-tile--return .transaction-type-tile__icon { background: #fdf0f0; color: #a34b54; }
+@media (max-width: 1020px) { .transaction-type-picker__grid { grid-template-columns: repeat(3,minmax(0,1fr)); } }
+@media (max-width: 600px) { .transaction-type-picker__grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .transaction-type-tile { min-height: 60px; padding: 9px; } }
+.transaction-type-picker__select.visually-hidden { position: absolute !important; width: 1px !important; height: 1px !important; min-height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0,0,0,0) !important; white-space: nowrap !important; border: 0 !important; }
+
+/* Phase 4B.26.4.1 — readability-only refinement for transaction entry.
+   Keep the approved layout, colours, spacing, and behaviour unchanged. */
+.transaction-entry,
+.transaction-review,
+.cash-direction-card {
+  font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
+  line-height: 1.8;
+}
+.transaction-entry__eyebrow,
+.transaction-entry__step-label,
+.transaction-review__eyebrow { font-size: 12px; letter-spacing: 0; }
+.transaction-entry__intro p,
+.transaction-entry__panel-heading p,
+.transaction-entry__type-note,
+.transaction-entry__actions-copy strong,
+.transaction-review__header p,
+.transaction-review__warning { font-size: 14px; }
+.transaction-entry__steps { font-size: 13px; }
+.transaction-entry__steps b { font-size: 12px; }
+.transaction-entry__panel-heading h4 { font-size: 18px; }
+.transaction-entry__dynamic .field__label,
+.transaction-entry__basic-grid .field__label { font-size: 15px; line-height: 1.65; }
+.transaction-entry__dynamic .input,
+.transaction-entry__dynamic .select,
+.transaction-entry__basic-grid .input,
+.transaction-entry__basic-grid .select { font-family: inherit; font-size: 15px; }
+.transaction-entry__dynamic .field__hint,
+.transaction-entry__dynamic .field__error,
+.transaction-entry__basic-grid .field__hint,
+.transaction-entry__basic-grid .field__error { font-size: 13px; line-height: 1.7; }
+.transaction-entry__actions-copy strong { font-size: 14px; }
+.transaction-entry__actions-copy span { font-size: 13px; }
+.transaction-entry__review-button { font-size: 15px; }
+.transaction-type-tile__copy strong { font-size: 13px; line-height: 1.55; }
+.transaction-type-tile__copy small { font-size: 12px; line-height: 1.55; }
+.transaction-review__header h3 { font-size: 21px; }
+.transaction-review__section h4 { font-size: 15px; }
+.transaction-review__item span { font-size: 13px; line-height: 1.6; }
+.transaction-review__item strong { font-size: 15px; line-height: 1.65; }
+.transaction-review__item--emphasis strong { font-size: 17px; }
+.transaction-review__impact strong { font-size: 15px; }
+.transaction-review__impact small { font-size: 13px; line-height: 1.6; }
+.transaction-review__note { font-size: 13px; }
+.transaction-review__confirm,
+.transaction-review__footer .btn { font-family: inherit; font-size: 15px; }
+.cash-direction-card__heading h3 { font-size: 19px; }
+.cash-direction-card__heading p,
+.cash-direction-card__confirm { font-size: 15px; line-height: 1.75; }
+
+@media (max-width: 600px) {
+  .transaction-entry__steps { font-size: 12px; }
+  .transaction-type-tile__copy strong { font-size: 12px; }
+  .transaction-type-tile__copy small { font-size: 11px; }
+  .transaction-review__item strong { font-size: 14px; }
+}
+
+/* Phase 4B.26.4.1 — readability-only refinement for transaction entry.
+   Keep the approved layout, colours, spacing, and behaviour unchanged. */
+.transaction-entry,
+.transaction-review,
+.cash-direction-card {
+  font-family: Tahoma, "Segoe UI", Arial, sans-serif;
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: auto;
+  line-height: 1.8;
+}
+.transaction-entry__eyebrow,
+.transaction-entry__step-label,
+.transaction-review__eyebrow { font-size: 12px; letter-spacing: 0; }
+.transaction-entry__intro p,
+.transaction-entry__panel-heading p,
+.transaction-entry__type-note,
+.transaction-entry__actions-copy strong,
+.transaction-review__header p,
+.transaction-review__warning { font-size: 14px; }
+.transaction-entry__steps { font-size: 13px; }
+.transaction-entry__steps b { font-size: 12px; }
+.transaction-entry__panel-heading h4 { font-size: 18px; }
+.transaction-entry__dynamic .field__label,
+.transaction-entry__basic-grid .field__label { font-size: 15px; line-height: 1.65; }
+.transaction-entry__dynamic .input,
+.transaction-entry__dynamic .select,
+.transaction-entry__basic-grid .input,
+.transaction-entry__basic-grid .select { font-family: inherit; font-size: 15px; }
+.transaction-entry__dynamic .field__hint,
+.transaction-entry__dynamic .field__error,
+.transaction-entry__basic-grid .field__hint,
+.transaction-entry__basic-grid .field__error { font-size: 13px; line-height: 1.7; }
+.transaction-entry__actions-copy strong { font-size: 14px; }
+.transaction-entry__actions-copy span { font-size: 13px; }
+.transaction-entry__review-button { font-size: 15px; }
+.transaction-type-tile__copy strong { font-size: 13px; line-height: 1.55; }
+.transaction-type-tile__copy small { font-size: 12px; line-height: 1.55; }
+.transaction-review__header h3 { font-size: 21px; }
+.transaction-review__section h4 { font-size: 15px; }
+.transaction-review__item span { font-size: 13px; line-height: 1.6; }
+.transaction-review__item strong { font-size: 15px; line-height: 1.65; }
+.transaction-review__item--emphasis strong { font-size: 17px; }
+.transaction-review__impact strong { font-size: 15px; }
+.transaction-review__impact small { font-size: 13px; line-height: 1.6; }
+.transaction-review__note { font-size: 13px; }
+.transaction-review__confirm,
+.transaction-review__footer .btn { font-family: inherit; font-size: 15px; }
+.cash-direction-card__heading h3 { font-size: 19px; }
+.cash-direction-card__heading p,
+.cash-direction-card__confirm { font-size: 15px; line-height: 1.75; }
+
+@media (max-width: 600px) {
+  .transaction-entry__steps { font-size: 12px; }
+  .transaction-type-tile__copy strong { font-size: 12px; }
+  .transaction-type-tile__copy small { font-size: 11px; }
+  .transaction-review__item strong { font-size: 14px; }
+}
+
+
+/* Phase 4B.26.6 — fixed identity footer for the application sidebar. */
+.app-sidebar__footer {
+  margin-block-start: auto;
+  padding: 14px 18px 18px;
+  border-block-start: 1px solid rgba(255,255,255,.13);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: rgba(235,243,250,.72);
+  font-size: 11px;
+  line-height: 1.55;
+}
+.app-sidebar__footer strong {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 800;
+  margin-block-end: 2px;
+}
+.app-sidebar__footer-phone {
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+@media (max-height: 720px) {
+  .app-sidebar__footer { padding-block: 10px 12px; gap: 3px; }
+}
